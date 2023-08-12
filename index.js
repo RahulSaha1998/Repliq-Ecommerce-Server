@@ -26,7 +26,15 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
+        // Connect the client to the server	(optional starting in v4.7)
+        // await client.connect();
+        client.connect((err) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+        })
 
         const userCollection = client.db('repliqECommerceDB').collection("users");
         const productCollection = client.db('repliqECommerceDB').collection("products");
