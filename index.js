@@ -33,13 +33,15 @@ async function run() {
         const CartCollection = client.db('repliqECommerceDB').collection("carts");
 
 
-        //get all users
+        //------------- User Collection Section -------------------
+
+        //get all user from User Collection
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result)
         })
 
-        //user get by email address
+        //get user by email address from User Collection
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
@@ -48,7 +50,7 @@ async function run() {
             res.send(result);
         })
 
-        //post new user to the database
+        //post all user to the User Collection
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email }
@@ -64,13 +66,16 @@ async function run() {
         });
 
 
-        //get all the products
+
+        //------------- Product Collection Section -------------------
+
+        //get all products from Product Collection
         app.get('/products', async (req, res) => {
             const result = await productCollection.find().toArray();
             res.send(result)
         })
 
-        //get single products
+        //get single product from Product Collection
         app.get('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -78,7 +83,7 @@ async function run() {
             res.send(result);
         })
 
-        //post products to the database
+        //post product to the Product Collection
         app.post('/products', async (req, res) => {
             const product = req.body;
             console.log('new product', product);
@@ -86,7 +91,7 @@ async function run() {
             res.send(result);
         })
 
-        //update products from the database
+        //update products to the Product Collection
         app.put('/products/:id', async (req, res) => {
             const id = req.params.id;
             const updatedProduct = req.body;
@@ -107,6 +112,7 @@ async function run() {
             res.send(result);
         })
 
+        //Delete products from the Product Collection
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id;
             console.log('please delete from database', id);
@@ -117,8 +123,9 @@ async function run() {
 
 
 
+        //------------- Cart Collection Section -------------------
 
-        // get products from cart products
+        // get products from Cart Collection
         app.get("/cartProducts/:email", async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
@@ -126,14 +133,14 @@ async function run() {
             res.send(result);
         });
 
-        // product add to cart API
+        // post products from Cart Collection
         app.post("/cartProducts", async (req, res) => {
             const cartProduct = req.body;
             const result = await CartCollection.insertOne(cartProduct);
             res.send(result);
         });
 
-        // delete product from cart
+        // Delete products from Cart Collection
         app.delete("/cartProducts/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
@@ -142,8 +149,8 @@ async function run() {
         });
 
 
-      
-    
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
