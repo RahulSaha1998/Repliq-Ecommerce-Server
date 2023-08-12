@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 require('dotenv').config()
 const app = express();
@@ -29,8 +29,24 @@ async function run() {
         await client.connect();
 
         const userCollection = client.db('repliqECommerceDB').collection("users");
+        const productCollection = client.db('repliqECommerceDB').collection("products");
+        const CartCollection = client.db('repliqECommerceDB').collection("carts");
 
-        
+
+        //get all users
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result)
+        })
+
+        //user get by email address
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' }
+            res.send(result);
+        })
 
         //post new user to the database
         app.post('/users', async (req, res) => {
@@ -48,12 +64,86 @@ async function run() {
         });
 
 
+        //get all the products
+        app.get('/products', async (req, res) => {
+            const result = await productCollection.find().toArray();
+            res.send(result)
+        })
+
+        //get single products
+        app.get('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await productCollection.findOne(query);
+            res.send(result);
+        })
+
+        //post products to the database
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            console.log('new product', product);
+            const result = await productCollection.insertOne(product);
+            res.send(result);
+        })
+
+        //update products from the database
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedProduct = req.body;
+
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedUser = {
+                $set: {
+                    product_name: updatedProduct.product_name,
+                    price: updatedProduct.price,
+                    quantity: updatedProduct.quantity,
+                    rating: updatedProduct.rating,
+                    description: updatedProduct.description
+                }
+            }
+
+            const result = await productCollection.updateOne(filter, updatedUser, options);
+            res.send(result);
+        })
+
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('please delete from database', id);
+            const query = { _id: new ObjectId(id) };
+            const result = await productCollection.deleteOne(query)
+            res.send(result);
+        })
 
 
 
 
+        // get products from cart products
+        app.get("/cartProducts/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await CartCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        // product add to cart API
+        app.post("/cartProducts", async (req, res) => {
+            const cartProduct = req.body;
+            const result = await CartCollection.insertOne(cartProduct);
+            res.send(result);
+        });
+
+        // delete product from cart
+        app.delete("/cartProducts/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await CartCollection.deleteOne(query);
+            res.send(result);
+        });
 
 
+      
+    
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
